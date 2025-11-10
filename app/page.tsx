@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const DEFAULT_SCRIPT = `<script>
   var paymentLink = "dbe08145-17d7-43b5-94e1-00b88f202ea1";
@@ -12,23 +12,22 @@ const DEFAULT_SCRIPT = `<script>
 const STORAGE_KEY = "keoto-last-script";
 
 export default function Home() {
-  // Inicializar com script salvo ou padrão
-  const [scriptInput, setScriptInput] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedScript = localStorage.getItem(STORAGE_KEY);
-      return savedScript || DEFAULT_SCRIPT;
-    }
-    return DEFAULT_SCRIPT;
-  });
-
+  const [scriptInput, setScriptInput] = useState(DEFAULT_SCRIPT);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [hasSavedScript, setHasSavedScript] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !!localStorage.getItem(STORAGE_KEY);
+  const [hasSavedScript, setHasSavedScript] = useState(false);
+
+  // Carregar do localStorage após montagem (client-side only)
+  useEffect(() => {
+    const savedScript = localStorage.getItem(STORAGE_KEY);
+    if (savedScript) {
+      // Necessário para sincronizar state com localStorage após hidratação
+      setTimeout(() => {
+        setScriptInput(savedScript);
+        setHasSavedScript(true);
+      }, 0);
     }
-    return false;
-  });
+  }, []);
 
   const handleLoadScript = () => {
     // Remove scripts antigos
